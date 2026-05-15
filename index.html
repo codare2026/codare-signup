@@ -541,7 +541,7 @@
       </div>
       <div class="field">
         <label>預期體脂目標</label>
-        <div class="hint">填數字即可（男性15%～25%，女性21%～34%）</div>
+        <div class="hint">填數字即可（男性15-24%，女性20-29%）</div>
         <input type="number" id="f_goal_fat" placeholder="例：22" step="0.1">
       </div>
     </div>
@@ -956,16 +956,17 @@ async function submitForm() {
     // 1. 確認學員帳號是否存在（dynuser_${phone}）
     const existing = await sbRead('dynuser_' + phone);
 
-    if (!existing) {
-      // ── 學員帳號不存在：建立 pending 暫存紀錄 ──
-      // 建立一個待確認帳號（營養師可在後台補齊資訊後正式建立）
+    // ── 無論帳號是否存在，都更新 pending 暫存（儀表板用）──
+    // 若已有 pending 且已 done，不覆蓋；否則寫入最新資料
+    const existingPending = await sbRead('pending_' + phone);
+    if (!existingPending || existingPending.status !== 'done') {
       await sbWrite('pending_' + phone, {
         phone,
-        name:      intake.name,
-        lineId:    intake.lineId,
-        gender:    intake.gender,
+        name:        intake.name,
+        lineId:      intake.lineId,
+        gender:      intake.gender,
         submittedAt: intake.submittedAt,
-        status:    'pending',  // 待營養師確認
+        status:      'pending',
       });
     }
 
